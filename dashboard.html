@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant Revenue Prediction System - Interactive Dashboard</title>
+    <style>
+        :root {
+            --primary: #1e3a8a;
+            --primary-light: #3b82f6;
+            --accent: #059669;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text-dark: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; }
+        body { background-color: var(--bg); color: var(--text-dark); line-height: 1.5; padding: 24px; }
+        .header {
+            background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%);
+            color: white; padding: 24px 30px; border-radius: 14px; margin-bottom: 24px;
+            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+        .header h1 { font-size: 1.8rem; font-weight: 700; }
+        .header p { opacity: 0.9; font-size: 0.95rem; margin-top: 4px; }
+        .badge {
+            background: rgba(255,255,255,0.18); padding: 8px 14px; border-radius: 8px; font-size: 0.85rem; font-weight: 500;
+        }
+        .badge span { background: #22c55e; color: white; padding: 2px 8px; border-radius: 4px; margin-right: 6px; font-weight: 600; }
+        
+        .presets-bar {
+            background: white; padding: 14px 20px; border-radius: 12px; border: 1px solid var(--border);
+            margin-bottom: 24px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+        }
+        .preset-btn {
+            background: #f1f5f9; border: 1px solid var(--border); padding: 8px 14px; border-radius: 8px;
+            cursor: pointer; font-size: 0.85rem; font-weight: 600; color: #334155; transition: all 0.2s;
+        }
+        .preset-btn:hover { background: #e2e8f0; border-color: #cbd5e1; }
+        .preset-btn.active { background: #1e3a8a; color: white; border-color: #1e3a8a; }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px; }
+        @media (max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } }
+        
+        .card {
+            background: var(--card-bg); border-radius: 12px; padding: 22px; border: 1px solid var(--border);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+        }
+        .card h3 { font-size: 1.15rem; color: var(--primary); margin-bottom: 16px; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; }
+        
+        .form-group { margin-bottom: 14px; }
+        .form-group label { display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 600; color: #334155; margin-bottom: 4px; }
+        .form-group label .val { color: var(--primary-light); font-weight: 700; }
+        input[type="range"] { width: 100%; height: 6px; border-radius: 3px; accent-color: var(--primary-light); cursor: pointer; }
+        select, input[type="number"] {
+            width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border);
+            background: #f8fafc; font-size: 0.9rem; color: var(--text-dark);
+        }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+        .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+        .kpi-card {
+            background: white; border: 1px solid var(--border); border-radius: 12px; padding: 18px; text-align: center;
+        }
+        .kpi-card .kpi-title { font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        .kpi-card .kpi-value { font-size: 1.85rem; font-weight: 800; color: var(--primary); margin: 6px 0; }
+        .kpi-card .kpi-sub { font-size: 0.8rem; color: var(--accent); font-weight: 600; }
+
+        .rec-box {
+            background: #f0fdf4; border-left: 4px solid #16a34a; padding: 12px 16px; border-radius: 6px;
+            font-size: 0.9rem; margin-bottom: 10px; color: #166534;
+        }
+
+        .whatif-box {
+            background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 12px; padding: 18px; margin-top: 16px;
+        }
+        .whatif-grid { display: flex; justify-content: space-around; align-items: center; flex-wrap: wrap; text-align: center; gap: 16px; }
+        .whatif-item .val { font-size: 1.4rem; font-weight: 800; color: #1e293b; }
+        .whatif-item .lbl { font-size: 0.75rem; color: #64748b; font-weight: 600; text-transform: uppercase; }
+        .whatif-item .lift { font-size: 1.4rem; font-weight: 800; color: #16a34a; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div>
+            <h1>🍽️ Restaurant Revenue Prediction System</h1>
+            <p>Predict restaurant monthly & annual revenue using Customer Location and Operational Characteristics</p>
+        </div>
+        <div class="badge">
+            <span>CHAMPION</span> HistGradientBoosting | R² = 0.8945 | MAPE = 15.3%
+        </div>
+    </div>
+
+    <!-- PRESETS BAR -->
+    <div class="presets-bar">
+        <span style="font-size: 0.85rem; font-weight: 700; color: #64748b;">QUICK PROFILES:</span>
+        <button class="preset-btn active" onclick="loadPreset('downtown')">🏙️ Downtown Fine Dining</button>
+        <button class="preset-btn" onclick="loadPreset('suburban')">⚡ Suburban Fast Casual</button>
+        <button class="preset-btn" onclick="loadPreset('cafe')">☕ College Town Cafe</button>
+        <button class="preset-btn" onclick="loadPreset('highway')">🍔 High-Volume Drive-Thru QSR</button>
+    </div>
+
+    <!-- MAIN INPUTS GRID -->
+    <div class="grid-2">
+        <!-- LOCATION CARD -->
+        <div class="card">
+            <h3>📍 Customer Location & Catchment Demographics</h3>
+            
+            <div class="form-group">
+                <label>Urban Location Classification</label>
+                <select id="loc_type" onchange="calculate()">
+                    <option value="downtown">Downtown / Urban Core</option>
+                    <option value="commercial">Business / Commercial District</option>
+                    <option value="mall">Shopping Mall / Food Court</option>
+                    <option value="suburban">Suburban Strip Mall</option>
+                    <option value="residential">Residential Neighborhood</option>
+                    <option value="highway">Highway / Travel Corridor</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Pedestrian Foot Traffic Index (1-100) <span class="val" id="val_foot">82</span></label>
+                <input type="range" id="foot_traffic" min="5" max="100" value="82" oninput="updateVal('val_foot', this.value); calculate();">
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Catchment Pop. Density (3km)</label>
+                    <input type="number" id="pop_density" value="14000" step="500" onchange="calculate()">
+                </div>
+                <div class="form-group">
+                    <label>Median Household Income ($)</label>
+                    <input type="number" id="income" value="95000" step="2000" onchange="calculate()">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Transit Proximity (1-10) <span class="val" id="val_transit">8.5</span></label>
+                    <input type="range" id="transit_score" min="1" max="10" step="0.5" value="8.5" oninput="updateVal('val_transit', this.value); calculate();">
+                </div>
+                <div class="form-group">
+                    <label>Commercial Density (1-10) <span class="val" id="val_comm">8.0</span></label>
+                    <input type="range" id="comm_density" min="1" max="10" step="0.5" value="8.0" oninput="updateVal('val_comm', this.value); calculate();">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Competing Restaurants (2km)</label>
+                    <input type="number" id="competitors" value="28" min="0" max="80" onchange="calculate()">
+                </div>
+                <div class="form-group">
+                    <label>Parking Spaces Available</label>
+                    <input type="number" id="parking" value="15" min="0" max="300" onchange="calculate()">
+                </div>
+            </div>
+        </div>
+
+        <!-- OPERATIONAL CARD -->
+        <div class="card">
+            <h3>⚙️ Operational Characteristics</h3>
+            
+            <div class="form-group">
+                <label>Dining Concept / Format</label>
+                <select id="rest_type" onchange="calculate()">
+                    <option value="fine">Fine Dining</option>
+                    <option value="casual" selected>Casual Dining</option>
+                    <option value="fast_casual">Fast Casual</option>
+                    <option value="qsr">Quick Service (QSR)</option>
+                    <option value="cafe">Cafe & Bakery</option>
+                    <option value="bar">Bar & Grill</option>
+                </select>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Seating Capacity <span class="val" id="val_seats">85</span></label>
+                    <input type="range" id="seating" min="15" max="350" value="85" step="5" oninput="updateVal('val_seats', this.value); calculate();">
+                </div>
+                <div class="form-group">
+                    <label>Avg Ticket Spend ($) <span class="val" id="val_ticket">$34.00</span></label>
+                    <input type="range" id="ticket" min="8" max="150" value="34" step="1" oninput="updateVal('val_ticket', '$' + Number(this.value).toFixed(2)); calculate();">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Operating Hours / Week</label>
+                    <input type="number" id="hours" value="68" min="30" max="120" onchange="calculate()">
+                </div>
+                <div class="form-group">
+                    <label>Floor Area (SqFt)</label>
+                    <input type="number" id="sqft" value="2600" min="400" max="10000" onchange="calculate()">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Delivery Sales Share (%) <span class="val" id="val_deliv">25%</span></label>
+                    <input type="range" id="delivery_pct" min="0" max="80" value="25" step="5" oninput="updateVal('val_deliv', this.value + '%'); calculate();">
+                </div>
+                <div class="form-group">
+                    <label>Customer Rating (★) <span class="val" id="val_rating">4.3 ★</span></label>
+                    <input type="range" id="rating" min="2.0" max="5.0" value="4.3" step="0.1" oninput="updateVal('val_rating', Number(this.value).toFixed(1) + ' ★'); calculate();">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Tech & POS Level</label>
+                    <select id="tech_level" onchange="calculate()">
+                        <option value="low">Low (Manual / Paper)</option>
+                        <option value="med" selected>Medium (Standard POS & Cards)</option>
+                        <option value="high">High (Kiosks, QR & Kitchen Screens)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Monthly Marketing ($)</label>
+                    <input type="number" id="marketing" value="2200" step="250" onchange="calculate()">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- REVENUE FORECAST KPIS -->
+    <div class="kpi-row">
+        <div class="kpi-card">
+            <div class="kpi-title">Projected Monthly Revenue</div>
+            <div class="kpi-value" id="kpi_monthly">$0</div>
+            <div class="kpi-sub" id="kpi_daily">Est. $0 / day</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-title">Projected Annual Revenue</div>
+            <div class="kpi-value" style="color: #059669;" id="kpi_annual">$0</div>
+            <div class="kpi-sub">12-Month Gross Run-Rate</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-title">Monthly Revenue / Seat</div>
+            <div class="kpi-value" style="color: #d97706;" id="kpi_seat">$0</div>
+            <div class="kpi-sub">Capacity Yield</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-title">Annual Sales / SqFt</div>
+            <div class="kpi-value" style="color: #4f46e5;" id="kpi_sqft">$0</div>
+            <div class="kpi-sub">Floor Space Productivity</div>
+        </div>
+    </div>
+
+    <!-- WHAT-IF SIMULATOR -->
+    <div class="card" style="margin-bottom: 24px;">
+        <h3>🧪 Instant What-If Scenario Simulator</h3>
+        <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 14px;">
+            Simulate operational growth levers to observe projected revenue lift:
+        </p>
+
+        <div class="form-row" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+            <div class="form-group">
+                <label>Add/Remove Seats: <span class="val" id="val_sim_seats">+0</span></label>
+                <input type="range" id="sim_seats" min="-25" max="50" value="0" step="5" oninput="updateVal('val_sim_seats', (this.value>=0?'+':'') + this.value); updateSimulator();">
+            </div>
+            <div class="form-group">
+                <label>Shift Ticket Price: <span class="val" id="val_sim_ticket">+$0</span></label>
+                <input type="range" id="sim_ticket" min="-10" max="25" value="0" step="1" oninput="updateVal('val_sim_ticket', (this.value>=0?'+$':'-$') + Math.abs(this.value)); updateSimulator();">
+            </div>
+            <div class="form-group">
+                <label>Delivery Share Shift: <span class="val" id="val_sim_deliv">+0%</span></label>
+                <input type="range" id="sim_deliv" min="-20" max="35" value="0" step="5" oninput="updateVal('val_sim_deliv', (this.value>=0?'+':'') + this.value + '%'); updateSimulator();">
+            </div>
+            <div class="form-group">
+                <label>Rating Shift (★): <span class="val" id="val_sim_rating">+0.0</span></label>
+                <input type="range" id="sim_rating" min="-0.8" max="0.8" value="0" step="0.1" oninput="updateVal('val_sim_rating', (this.value>=0?'+':'') + Number(this.value).toFixed(1)); updateSimulator();">
+            </div>
+        </div>
+
+        <div class="whatif-box">
+            <div class="whatif-grid">
+                <div class="whatif-item">
+                    <div class="lbl">Baseline Monthly</div>
+                    <div class="val" id="sim_base_val">$0</div>
+                </div>
+                <div style="font-size: 1.5rem; color: #94a3b8;">➔</div>
+                <div class="whatif-item">
+                    <div class="lbl">Simulated Monthly</div>
+                    <div class="val" style="color: #1e3a8a;" id="sim_scenario_val">$0</div>
+                </div>
+                <div style="font-size: 1.5rem; color: #94a3b8;">➔</div>
+                <div class="whatif-item">
+                    <div class="lbl">Net Projected Lift</div>
+                    <div class="lift" id="sim_lift_val">+$0 (+0.0%)</div>
+                    <div style="font-size: 0.75rem; color: #64748b;" id="sim_annual_lift">+$0 / year</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- RECOMMENDATIONS -->
+    <div class="card">
+        <h3>💡 Tailored Growth Recommendations</h3>
+        <div id="recommendations_container"></div>
+    </div>
+
+    <script>
+        function updateVal(id, text) {
+            document.getElementById(id).innerText = text;
+        }
+
+        const presets = {
+            downtown: { loc: 'downtown', rest: 'fine', seats: 85, ticket: 110, foot: 85, pop: 16000, inc: 115000, transit: 9.0, comm: 9.0, comp: 35, deliv: 5, rating: 4.6, tech: 'med', sqft: 3200, hrs: 50 },
+            suburban: { loc: 'suburban', rest: 'fast_casual', seats: 70, ticket: 19, foot: 55, pop: 5200, inc: 85000, transit: 4.5, comm: 5.5, comp: 14, deliv: 45, rating: 4.4, tech: 'high', sqft: 1900, hrs: 80 },
+            cafe: { loc: 'commercial', rest: 'cafe', seats: 40, ticket: 11.5, foot: 78, pop: 8500, inc: 65000, transit: 8.0, comm: 8.2, comp: 18, deliv: 20, rating: 4.7, tech: 'high', sqft: 1150, hrs: 65 },
+            highway: { loc: 'highway', rest: 'qsr', seats: 60, ticket: 13.5, foot: 60, pop: 3200, inc: 58000, transit: 2.5, comm: 4.0, comp: 8, deliv: 35, rating: 4.1, tech: 'high', sqft: 2200, hrs: 110 }
+        };
+
+        function loadPreset(key) {
+            document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            const p = presets[key];
+            if (!p) return;
+
+            document.getElementById('loc_type').value = p.loc;
+            document.getElementById('rest_type').value = p.rest;
+            document.getElementById('seating').value = p.seats;
+            updateVal('val_seats', p.seats);
+            document.getElementById('ticket').value = p.ticket;
+            updateVal('val_ticket', '$' + Number(p.ticket).toFixed(2));
+            document.getElementById('foot_traffic').value = p.foot;
+            updateVal('val_foot', p.foot);
+            document.getElementById('pop_density').value = p.pop;
+            document.getElementById('income').value = p.inc;
+            document.getElementById('transit_score').value = p.transit;
+            updateVal('val_transit', p.transit);
+            document.getElementById('comm_density').value = p.comm;
+            updateVal('val_comm', p.comm);
+            document.getElementById('competitors').value = p.comp;
+            document.getElementById('delivery_pct').value = p.deliv;
+            updateVal('val_deliv', p.deliv + '%');
+            document.getElementById('rating').value = p.rating;
+            updateVal('val_rating', p.rating.toFixed(1) + ' ★');
+            document.getElementById('tech_level').value = p.tech;
+            document.getElementById('sqft').value = p.sqft;
+            document.getElementById('hours').value = p.hrs;
+
+            calculate();
+        }
+
+        function predictRevenue(params) {
+            const seats = params.seats;
+            const ticket = params.ticket;
+            const foot = params.foot;
+            const pop = params.pop;
+            const inc = params.inc;
+            const deliv = params.deliv;
+            const rating = params.rating;
+            const hrs = params.hrs;
+            const rest = params.rest;
+            const tech = params.tech;
+            const comp = params.comp;
+
+            // Base turns by concept
+            let baseTurns = 2.6;
+            if (rest === 'fine') baseTurns = 1.35;
+            else if (rest === 'casual') baseTurns = 2.7;
+            else if (rest === 'fast_casual') baseTurns = 4.6;
+            else if (rest === 'qsr') baseTurns = 6.4;
+            else if (rest === 'cafe') baseTurns = 5.0;
+            else if (rest === 'bar') baseTurns = 2.3;
+
+            // Multipliers
+            const footFactor = 0.55 + (foot / 100.0) * 0.65;
+            const popFactor = 0.85 + (pop / 20000.0) * 0.30;
+            const incFactor = 0.80 + (inc / 100000.0) * 0.25;
+            const ratingFactor = Math.pow(rating / 4.0, 1.6);
+            const techMult = tech === 'high' ? 1.12 : (tech === 'low' ? 0.92 : 1.0);
+            const hoursFactor = Math.pow(hrs / 65.0, 0.65);
+            const compFactor = comp < 15 ? (1.0 - comp * 0.004) : (comp < 35 ? 0.94 + (comp - 15) * 0.003 : 1.0 - (comp - 35) * 0.006);
+
+            const effectiveCovers = seats * baseTurns * footFactor * popFactor * ratingFactor * techMult * hoursFactor * compFactor;
+            const dineInRev = effectiveCovers * ticket * incFactor;
+            const delivRev = deliv > 0 ? dineInRev * (deliv / (100.0 - deliv * 0.65)) * 1.08 : 0;
+            const monthly = (dineInRev + delivRev) * 30.4;
+            return Math.max(monthly, 12000);
+        }
+
+        let baseMonthlyRevenue = 0;
+
+        function calculate() {
+            const params = {
+                seats: Number(document.getElementById('seating').value),
+                ticket: Number(document.getElementById('ticket').value),
+                foot: Number(document.getElementById('foot_traffic').value),
+                pop: Number(document.getElementById('pop_density').value),
+                inc: Number(document.getElementById('income').value),
+                transit: Number(document.getElementById('transit_score').value),
+                comm: Number(document.getElementById('comm_density').value),
+                comp: Number(document.getElementById('competitors').value),
+                deliv: Number(document.getElementById('delivery_pct').value),
+                rating: Number(document.getElementById('rating').value),
+                tech: document.getElementById('tech_level').value,
+                sqft: Number(document.getElementById('sqft').value),
+                hrs: Number(document.getElementById('hours').value),
+                rest: document.getElementById('rest_type').value,
+                loc: document.getElementById('loc_type').value
+            };
+
+            baseMonthlyRevenue = predictRevenue(params);
+            const annual = baseMonthlyRevenue * 12;
+            const daily = baseMonthlyRevenue / 30.4;
+            const perSeat = baseMonthlyRevenue / params.seats;
+            const perSqft = annual / params.sqft;
+
+            document.getElementById('kpi_monthly').innerText = '$' + Math.round(baseMonthlyRevenue).toLocaleString();
+            document.getElementById('kpi_annual').innerText = '$' + Math.round(annual).toLocaleString();
+            document.getElementById('kpi_daily').innerText = 'Est. $' + Math.round(daily).toLocaleString() + ' / day';
+            document.getElementById('kpi_seat').innerText = '$' + Math.round(perSeat).toLocaleString();
+            document.getElementById('kpi_sqft').innerText = '$' + Math.round(perSqft).toLocaleString();
+
+            updateSimulator();
+            updateRecommendations(params, baseMonthlyRevenue);
+        }
+
+        function updateSimulator() {
+            const addSeats = Number(document.getElementById('sim_seats').value);
+            const addTicket = Number(document.getElementById('sim_ticket').value);
+            const addDeliv = Number(document.getElementById('sim_deliv').value);
+            const addRating = Number(document.getElementById('sim_rating').value);
+
+            const simParams = {
+                seats: Math.max(10, Number(document.getElementById('seating').value) + addSeats),
+                ticket: Math.max(6, Number(document.getElementById('ticket').value) + addTicket),
+                foot: Number(document.getElementById('foot_traffic').value),
+                pop: Number(document.getElementById('pop_density').value),
+                inc: Number(document.getElementById('income').value),
+                transit: Number(document.getElementById('transit_score').value),
+                comm: Number(document.getElementById('comm_density').value),
+                comp: Number(document.getElementById('competitors').value),
+                deliv: Math.max(0, Math.min(85, Number(document.getElementById('delivery_pct').value) + addDeliv)),
+                rating: Math.max(1.5, Math.min(5.0, Number(document.getElementById('rating').value) + addRating)),
+                tech: document.getElementById('tech_level').value,
+                sqft: Number(document.getElementById('sqft').value),
+                hrs: Number(document.getElementById('hours').value),
+                rest: document.getElementById('rest_type').value,
+                loc: document.getElementById('loc_type').value
+            };
+
+            const simMonthly = predictRevenue(simParams);
+            const diff = simMonthly - baseMonthlyRevenue;
+            const pct = (diff / Math.max(baseMonthlyRevenue, 1)) * 100;
+            const annualDiff = diff * 12;
+
+            document.getElementById('sim_base_val').innerText = '$' + Math.round(baseMonthlyRevenue).toLocaleString() + '/mo';
+            document.getElementById('sim_scenario_val').innerText = '$' + Math.round(simMonthly).toLocaleString() + '/mo';
+
+            const liftEl = document.getElementById('sim_lift_val');
+            liftEl.style.color = diff >= 0 ? '#16a34a' : '#dc2626';
+            liftEl.innerText = (diff >= 0 ? '▲ +$' : '▼ -$') + Math.round(Math.abs(diff)).toLocaleString() + ' (' + (pct >= 0 ? '+' : '') + pct.toFixed(1) + '%)';
+            document.getElementById('sim_annual_lift').innerText = (annualDiff >= 0 ? '+$' : '-$') + Math.round(Math.abs(annualDiff)).toLocaleString() + ' / year';
+        }
+
+        function updateRecommendations(p, currentRev) {
+            const container = document.getElementById('recommendations_container');
+            container.innerHTML = '';
+            const recs = [];
+
+            if (p.deliv < 20 && ['casual', 'fast_casual', 'qsr'].includes(p.rest)) {
+                recs.push(`<strong>Delivery Expansion:</strong> Delivery is currently ${p.deliv}%. Expanding online aggregator presence toward 35% could unlock an estimated +$${Math.round(currentRev * 0.12).toLocaleString()}/month.`);
+            }
+            if (p.foot >= 75 && p.rating < 4.2) {
+                recs.push(`<strong>Pedestrian Conversion Bottleneck:</strong> Strong foot traffic index (${p.foot}/100) is held back by a ${p.rating}★ rating. Elevating service quality to reach 4.5+★ can boost table turns by 12%-18%.`);
+            }
+            const seatDensity = p.seats / Math.max(p.sqft, 100);
+            if (seatDensity < 0.026) {
+                const addSeats = Math.round((0.035 - seatDensity) * p.sqft);
+                if (addSeats > 6) {
+                    recs.push(`<strong>Dining Space Optimization:</strong> Space density is low (${seatDensity.toFixed(3)} seats/sqft). Reconfiguring table layout could add ~${addSeats} seats without overcrowding.`);
+                }
+            }
+            if (p.tech === 'low') {
+                recs.push(`<strong>POS Technology Modernization:</strong> Upgrading from manual POS to digital QR / handheld tablets cuts order latency by 4-6 minutes, accelerating turnover during rush hours.`);
+            }
+            if (p.hrs < 55) {
+                recs.push(`<strong>Operating Hours Extension:</strong> Facility operates only ${p.hrs} hrs/week. Piloting weekend brunch or afternoon beverage windows captures incremental high-margin sales.`);
+            }
+            if (recs.length === 0) {
+                recs.push(`<strong>Balanced Operation:</strong> Location catchment attributes and operational parameters are well-synchronized.`);
+            }
+
+            recs.forEach(r => {
+                const div = document.createElement('div');
+                div.className = 'rec-box';
+                div.innerHTML = '📌 ' + r;
+                container.appendChild(div);
+            });
+        }
+
+        // Initialize on load
+        calculate();
+    </script>
+</body>
+</html>
+

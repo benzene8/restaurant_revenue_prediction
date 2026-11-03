@@ -1,0 +1,26 @@
+[
+  {
+    "model_name": "Ridge Regression (Baseline)",
+    "r2_score": 0.8067,
+    "mae": 100145.72,
+    "rmse": 138546.07,
+    "mape_pct": 31.96,
+    "residual_std": 138484.57
+  },
+  {
+    "model_name": "Random Forest Regressor",
+    "r2_score": 0.8187,
+    "mae": 93836.07,
+    "rmse": 134184.92,
+    "mape_pct": 22.7,
+    "residual_std": 134180.93
+  },
+  {
+    "model_name": "HistGradientBoosting Regressor",
+    "r2_score": 0.8945,
+    "mae": 69727.64,
+    "rmse": 102332.88,
+    "mape_pct": 15.29,
+    "residual_std": 102316.46
+  }
+]
